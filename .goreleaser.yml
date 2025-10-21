@@ -1,0 +1,85 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: charm
+    binary: charm
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    # Ignorar combinações inválidas
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: charm
+    format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE*
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch
+
+# Configuração para publicar no GitHub Releases
+release:
+  github:
+    owner: JoaoPedr0Maciel
+    name: charm
+  draft: false
+  prerelease: auto
+  name_template: "{{.ProjectName}} v{{.Version}}"
+  header: |
+    ## Instalação Rápida
+    
+    ### Linux/Mac 🐧 🍎
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/JoaoPedr0Maciel/charm/main/install.sh | bash
+    ```
+    
+    ### Windows 🪟
+    Baixe o arquivo `.zip` abaixo, extraia e adicione ao PATH.
+    
+    ### Go Install
+    ```bash
+    go install github.com/JoaoPedr0Maciel/charm@latest
+    ```
+

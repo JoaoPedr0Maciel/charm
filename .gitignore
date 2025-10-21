@@ -1,0 +1,29 @@
+# Binários
+/bin/
+/dist/
+charm
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*.test
+
+# Output do Go
+*.out
+
+# Arquivos de build do GoReleaser
+dist/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
