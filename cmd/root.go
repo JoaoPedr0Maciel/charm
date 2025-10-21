@@ -32,7 +32,8 @@ var getCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(getCmd)
-	getCmd.Flags().String("auth", "", "Authorization header")
+	getCmd.Flags().String("bearer", "", "Bearer token")
+	getCmd.Flags().String("basic", "", "Basic auth username and password")
 	getCmd.Flags().String("content-type", "", "Content-Type header")
 }
 

@@ -1,6 +1,7 @@
 package http
 
 import (
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 	"github.com/tidwall/pretty"
 )
 
-func Get(url string, authorization *string, contentType *string) (*http.Response, error) {
+func Get(url string, bearer *string, basic *string, contentType *string) (*http.Response, error) {
 	startTime := time.Now()
 	req, err := http.NewRequest("GET", url, nil)
 
@@ -20,8 +21,13 @@ func Get(url string, authorization *string, contentType *string) (*http.Response
 		os.Exit(1)
 	}
 
-	if authorization != nil {
-		req.Header.Set("Authorization", *authorization)
+	if bearer != nil {
+		req.Header.Set("Authorization", "Bearer "+*bearer)
+	}
+
+	if basic != nil {
+		auth := base64.StdEncoding.EncodeToString([]byte(*basic))
+		req.Header.Set("Authorization", "Basic "+auth)
 	}
 
 	if contentType != nil {
