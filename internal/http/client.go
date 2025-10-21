@@ -6,15 +6,24 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
+	"github.com/JoaoPedr0Maciel/charm/internal/utils"
 	"github.com/fatih/color"
 	"github.com/tidwall/pretty"
 )
 
-func Get(url string, bearer *string, basic *string, contentType *string) (*http.Response, error) {
+// doRequest é uma função auxiliar interna que faz a requisição HTTP
+func doRequest(method, url string, bearer *string, basic *string, contentType *string, data *string) (*http.Response, error) {
 	startTime := time.Now()
-	req, err := http.NewRequest("GET", url, nil)
+
+	var bodyReader io.Reader
+	if data != nil && *data != "" {
+		bodyReader = strings.NewReader(*data)
+	}
+
+	req, err := http.NewRequest(method, url, bodyReader)
 
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -30,11 +39,12 @@ func Get(url string, bearer *string, basic *string, contentType *string) (*http.
 		req.Header.Set("Authorization", "Basic "+auth)
 	}
 
-	if contentType != nil {
+	// Define Content-Type (default: application/json se tiver data)
+	if contentType != nil && *contentType != "" {
 		req.Header.Set("Content-Type", *contentType)
+	} else if data != nil && *data != "" {
+		req.Header.Set("Content-Type", "application/json")
 	}
-
-	req.Header.Set("Content-Type", "application/json")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -51,13 +61,13 @@ func Get(url string, bearer *string, basic *string, contentType *string) (*http.
 	}
 
 	formatted := pretty.Pretty(body)
-	statusEmoji := getEmojiByStatusCode(statusCode)
+	statusEmoji := utils.GetEmojiByStatusCode(statusCode)
 
 	// Header principal
 	fmt.Println()
 	color.New(color.Bold, color.FgHiWhite).Println("╔═══════════════════════════════════════════════════════════════════════════")
 	statusLine := fmt.Sprintf("║ %s  Status: %d  │  %s   │  time: %s", statusEmoji, statusCode, url, time.Since(startTime).Round(time.Millisecond))
-	color.New(color.Bold, getColorByStatus(statusCode)).Println(statusLine)
+	color.New(color.Bold, utils.GetColorByStatus(statusCode)).Println(statusLine)
 	color.New(color.Bold, color.FgHiWhite).Println("╠═══════════════════════════════════════════════════════════════════════════")
 
 	// Request Headers
@@ -80,7 +90,7 @@ func Get(url string, bearer *string, basic *string, contentType *string) (*http.
 
 	// Adicionar prefixo em cada linha do body
 	bodyLines := string(colored)
-	for _, line := range splitLines(bodyLines) {
+	for _, line := range utils.SplitLines(bodyLines) {
 		if line != "" {
 			fmt.Println("║ " + line)
 		}
@@ -92,48 +102,22 @@ func Get(url string, bearer *string, basic *string, contentType *string) (*http.
 	return resp, nil
 }
 
-func getEmojiByStatusCode(statusCode int) string {
-	if statusCode >= 200 && statusCode < 300 {
-		return "✨"
-	}
-
-	if statusCode >= 300 && statusCode < 400 {
-		return "↪️"
-	}
-
-	if statusCode >= 400 && statusCode < 500 {
-		return "⚠️"
-	}
-
-	return "❌"
+func Get(url string, bearer *string, basic *string, contentType *string) (*http.Response, error) {
+	return doRequest("GET", url, bearer, basic, contentType, nil)
 }
 
-func getColorByStatus(statusCode int) color.Attribute {
-	if statusCode >= 200 && statusCode < 300 {
-		return color.FgHiGreen
-	}
-
-	if statusCode >= 300 && statusCode < 400 {
-		return color.FgHiYellow
-	}
-
-	return color.FgHiRed
-
+func Post(url string, bearer *string, basic *string, contentType *string, data *string) (*http.Response, error) {
+	return doRequest("POST", url, bearer, basic, contentType, data)
 }
 
-func splitLines(s string) []string {
-	lines := []string{}
-	currentLine := ""
-	for _, char := range s {
-		if char == '\n' {
-			lines = append(lines, currentLine)
-			currentLine = ""
-		} else {
-			currentLine += string(char)
-		}
-	}
-	if currentLine != "" {
-		lines = append(lines, currentLine)
-	}
-	return lines
+func Put(url string, bearer *string, basic *string, contentType *string, data *string) (*http.Response, error) {
+	return doRequest("PUT", url, bearer, basic, contentType, data)
+}
+
+func Patch(url string, bearer *string, basic *string, contentType *string, data *string) (*http.Response, error) {
+	return doRequest("PATCH", url, bearer, basic, contentType, data)
+}
+
+func Delete(url string, bearer *string, basic *string, contentType *string, data *string) (*http.Response, error) {
+	return doRequest("DELETE", url, bearer, basic, contentType, data)
 }

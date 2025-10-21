@@ -26,18 +26,57 @@ go install github.com/JoaoPedr0Maciel/charm@latest
 
 ## 📖 Uso
 
-### GET Request Simples
+### GET Request
 
 ```bash
+# Simples
 charm get https://api.github.com/users/github
+
+# Com Bearer token
+charm get https://api.example.com/data --bearer seu-token-jwt
+
+# Com Basic auth
+charm get https://api.example.com/data --basic usuario:senha
 ```
 
-### Com Headers
+### POST Request
 
 ```bash
-charm get https://api.example.com/data \
-  --auth "Bearer seu-token-aqui" \
-  --content-type "application/json"
+# Com dados JSON
+charm post https://api.example.com/users --data '{"name":"João","email":"joao@example.com"}'
+
+# Com autenticação
+charm post https://api.example.com/users \
+  --bearer seu-token \
+  --data '{"name":"João"}'
+```
+
+### PUT Request
+
+```bash
+charm put https://api.example.com/users/1 \
+  --data '{"name":"João Pedro","email":"jp@example.com"}' \
+  --bearer seu-token
+```
+
+### PATCH Request
+
+```bash
+charm patch https://api.example.com/users/1 \
+  --data '{"active":true}' \
+  --bearer seu-token
+```
+
+### DELETE Request
+
+```bash
+charm delete https://api.example.com/users/1 --bearer seu-token
+```
+
+### Ver Versão
+
+```bash
+charm version
 ```
 
 ## 🎨 Features
@@ -46,8 +85,10 @@ charm get https://api.example.com/data \
 - 📊 Exibição de status code com emojis
 - ⏱️ Medição de tempo de resposta
 - 📋 Visualização clara de headers
-- 🎯 Suporte para autenticação
+- 🎯 Suporte para autenticação (Bearer e Basic)
 - 🌈 JSON formatado e colorido
+- 🚀 Suporte completo para GET, POST, PUT, PATCH, DELETE
+- 📦 Envio de dados JSON no body
 
 ## 🛠️ Desenvolvimento
 
