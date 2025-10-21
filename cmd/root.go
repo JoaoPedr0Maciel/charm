@@ -20,9 +20,10 @@ var getCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		url := args[0]
-		auth, _ := cmd.Flags().GetString("auth")
+		bearer, _ := cmd.Flags().GetString("bearer")
+		basic, _ := cmd.Flags().GetString("basic")
 		contentType, _ := cmd.Flags().GetString("content-type")
-		_, err := http.Get(url, &auth, &contentType)
+		_, err := http.Get(url, &bearer, &basic, &contentType)
 		if err != nil {
 			fmt.Println("Error making GET request:", err)
 			os.Exit(1)
