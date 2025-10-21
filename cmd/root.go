@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	httpClient "github.com/JoaoPedr0Maciel/charm/internal/http"
+	client "github.com/JoaoPedr0Maciel/charm/internal/http"
 	"github.com/JoaoPedr0Maciel/charm/internal/structs"
 	"github.com/spf13/cobra"
 )
@@ -24,11 +24,11 @@ var rootCmd = &cobra.Command{
 }
 
 var httpMethods = []structs.HTTPMethod{
-	{Name: "get", HasBody: false, HTTPFuncNoBody: httpClient.Get},
-	{Name: "post", HasBody: true, HTTPFunc: httpClient.Post},
-	{Name: "put", HasBody: true, HTTPFunc: httpClient.Put},
-	{Name: "patch", HasBody: true, HTTPFunc: httpClient.Patch},
-	{Name: "delete", HasBody: true, HTTPFunc: httpClient.Delete},
+	{Name: "get", HasBody: false, HTTPFuncNoBody: client.Get},
+	{Name: "post", HasBody: true, HTTPFunc: client.Post},
+	{Name: "put", HasBody: true, HTTPFunc: client.Put},
+	{Name: "patch", HasBody: true, HTTPFunc: client.Patch},
+	{Name: "delete", HasBody: true, HTTPFunc: client.Delete},
 }
 
 func createHTTPCommand(method structs.HTTPMethod) *cobra.Command {

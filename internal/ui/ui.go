@@ -136,11 +136,7 @@ func DisplayResponse(resp *http.Response, body []byte, totalTime time.Duration) 
 		colored := pretty.Color(formatted, nil)
 
 		bodyLines := SplitLines(string(colored))
-		for i, line := range bodyLines {
-			if i > 20 {
-				gray.Println("│   ... (truncated)" + strings.Repeat(" ", 58) + "│")
-				break
-			}
+		for _, line := range bodyLines {
 			if line != "" {
 				truncated := truncateString(line, 75)
 				fmt.Print("│ ")

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.1] - 2025-10-21
+
+### 🐛 Fixed
+- Removed 20-line truncation limit on response body display
+- Response bodies are now displayed completely regardless of size
+
 ## [1.1.0] - 2025-10-21
 
 ### ✨ Added
