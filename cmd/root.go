@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/JoaoPedr0Maciel/charm/internal/http"
+	httpClient "github.com/JoaoPedr0Maciel/charm/internal/http"
+	"github.com/JoaoPedr0Maciel/charm/internal/structs"
 	"github.com/spf13/cobra"
 )
 
@@ -22,93 +23,63 @@ var rootCmd = &cobra.Command{
 	Long:  `Charm is a tool to get beautiful and colorful HTTP requests`,
 }
 
-var getCmd = &cobra.Command{
-	Use:   "get [url]",
-	Short: "Make a GET request to the specified URL",
-	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		url := args[0]
-		bearer, _ := cmd.Flags().GetString("bearer")
-		basic, _ := cmd.Flags().GetString("basic")
-		contentType, _ := cmd.Flags().GetString("content-type")
-		_, err := http.Get(url, &bearer, &basic, &contentType)
-		if err != nil {
-			fmt.Println("Error making GET request:", err)
-			os.Exit(1)
-		}
-	},
+var httpMethods = []structs.HTTPMethod{
+	{Name: "get", HasBody: false, HTTPFuncNoBody: httpClient.Get},
+	{Name: "post", HasBody: true, HTTPFunc: httpClient.Post},
+	{Name: "put", HasBody: true, HTTPFunc: httpClient.Put},
+	{Name: "patch", HasBody: true, HTTPFunc: httpClient.Patch},
+	{Name: "delete", HasBody: true, HTTPFunc: httpClient.Delete},
 }
 
-var postCmd = &cobra.Command{
-	Use:   "post [url]",
-	Short: "Make a POST request to the specified URL",
-	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		url := args[0]
-		bearer, _ := cmd.Flags().GetString("bearer")
-		basic, _ := cmd.Flags().GetString("basic")
-		contentType, _ := cmd.Flags().GetString("content-type")
-		data, _ := cmd.Flags().GetString("data")
-		_, err := http.Post(url, &bearer, &basic, &contentType, &data)
-		if err != nil {
-			fmt.Println("Error making POST request:", err)
-			os.Exit(1)
-		}
-	},
+func createHTTPCommand(method structs.HTTPMethod) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   fmt.Sprintf("%s [url]", method.Name),
+		Short: fmt.Sprintf("Make a %s request to the specified URL", method.Name),
+		Args:  cobra.ExactArgs(1),
+		RunE:  makeHTTPRequestFunc(method),
+	}
+
+	addCommonFlags(cmd)
+
+	if method.HasBody {
+		cmd.Flags().String("data", "", "Request body data (JSON)")
+		cmd.Flags().StringP("data-raw", "d", "", "Request body data (raw)")
+	}
+
+	return cmd
 }
 
-var putCmd = &cobra.Command{
-	Use:   "put [url]",
-	Short: "Make a PUT request to the specified URL",
-	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+func makeHTTPRequestFunc(method structs.HTTPMethod) func(*cobra.Command, []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 		url := args[0]
+
 		bearer, _ := cmd.Flags().GetString("bearer")
 		basic, _ := cmd.Flags().GetString("basic")
 		contentType, _ := cmd.Flags().GetString("content-type")
-		data, _ := cmd.Flags().GetString("data")
-		_, err := http.Put(url, &bearer, &basic, &contentType, &data)
-		if err != nil {
-			fmt.Println("Error making PUT request:", err)
-			os.Exit(1)
+
+		var err error
+		if method.HasBody {
+			data, _ := cmd.Flags().GetString("data-raw")
+			if data == "" {
+				data, _ = cmd.Flags().GetString("data")
+			}
+			_, err = method.HTTPFunc(url, bearer, basic, contentType, data)
+		} else {
+			_, err = method.HTTPFuncNoBody(url, bearer, basic, contentType)
 		}
-	},
+
+		if err != nil {
+			return fmt.Errorf("%s request failed: %w", method.Name, err)
+		}
+
+		return nil
+	}
 }
 
-var patchCmd = &cobra.Command{
-	Use:   "patch [url]",
-	Short: "Make a PATCH request to the specified URL",
-	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		url := args[0]
-		bearer, _ := cmd.Flags().GetString("bearer")
-		basic, _ := cmd.Flags().GetString("basic")
-		contentType, _ := cmd.Flags().GetString("content-type")
-		data, _ := cmd.Flags().GetString("data")
-		_, err := http.Patch(url, &bearer, &basic, &contentType, &data)
-		if err != nil {
-			fmt.Println("Error making PATCH request:", err)
-			os.Exit(1)
-		}
-	},
-}
-
-var deleteCmd = &cobra.Command{
-	Use:   "delete [url]",
-	Short: "Make a DELETE request to the specified URL",
-	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		url := args[0]
-		bearer, _ := cmd.Flags().GetString("bearer")
-		basic, _ := cmd.Flags().GetString("basic")
-		contentType, _ := cmd.Flags().GetString("content-type")
-		data, _ := cmd.Flags().GetString("data")
-		_, err := http.Delete(url, &bearer, &basic, &contentType, &data)
-		if err != nil {
-			fmt.Println("Error making DELETE request:", err)
-			os.Exit(1)
-		}
-	},
+func addCommonFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("bearer", "b", "", "Bearer token for authentication")
+	cmd.Flags().String("basic", "", "Basic auth in format 'username:password'")
+	cmd.Flags().StringP("content-type", "H", "", "Content-Type header")
 }
 
 var versionCmd = &cobra.Command{
@@ -119,56 +90,17 @@ var versionCmd = &cobra.Command{
 	},
 }
 
-var helpCmd = &cobra.Command{
-	Use:   "help",
-	Short: "Show help for a command",
-	Run: func(cmd *cobra.Command, args []string) {
-		rootCmd.Help()
-	},
-}
-
 func init() {
-	rootCmd.AddCommand(getCmd)
-	rootCmd.AddCommand(postCmd)
-	rootCmd.AddCommand(putCmd)
-	rootCmd.AddCommand(patchCmd)
-	rootCmd.AddCommand(deleteCmd)
+	for _, method := range httpMethods {
+		rootCmd.AddCommand(createHTTPCommand(method))
+	}
+
 	rootCmd.AddCommand(versionCmd)
-	rootCmd.AddCommand(helpCmd)
-
-	rootCmd.Flags().String("help", "", "Show help for a command")
-	// Flags para GET
-	getCmd.Flags().String("bearer", "", "Bearer token")
-	getCmd.Flags().String("basic", "", "Basic auth username and password")
-	getCmd.Flags().String("content-type", "", "Content-Type header")
-
-	// Flags para POST
-	postCmd.Flags().String("bearer", "", "Bearer token")
-	postCmd.Flags().String("basic", "", "Basic auth username and password")
-	postCmd.Flags().String("content-type", "", "Content-Type header")
-	postCmd.Flags().String("data", "", "Request body data (JSON)")
-
-	// Flags para PUT
-	putCmd.Flags().String("bearer", "", "Bearer token")
-	putCmd.Flags().String("basic", "", "Basic auth username and password")
-	putCmd.Flags().String("content-type", "", "Content-Type header")
-	putCmd.Flags().String("data", "", "Request body data (JSON)")
-
-	// Flags para PATCH
-	patchCmd.Flags().String("bearer", "", "Bearer token")
-	patchCmd.Flags().String("basic", "", "Basic auth username and password")
-	patchCmd.Flags().String("content-type", "", "Content-Type header")
-	patchCmd.Flags().String("data", "", "Request body data (JSON)")
-
-	// Flags para DELETE
-	deleteCmd.Flags().String("bearer", "", "Bearer token")
-	deleteCmd.Flags().String("basic", "", "Basic auth username and password")
-	deleteCmd.Flags().String("content-type", "", "Content-Type header")
-	deleteCmd.Flags().String("data", "", "Request body data (JSON)")
 }
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
