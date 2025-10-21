@@ -21,11 +21,11 @@ func Get(url string, bearer *string, basic *string, contentType *string) (*http.
 		os.Exit(1)
 	}
 
-	if bearer != nil {
+	if bearer != nil && *bearer != "" {
 		req.Header.Set("Authorization", "Bearer "+*bearer)
 	}
 
-	if basic != nil {
+	if basic != nil && *basic != "" {
 		auth := base64.StdEncoding.EncodeToString([]byte(*basic))
 		req.Header.Set("Authorization", "Basic "+auth)
 	}
