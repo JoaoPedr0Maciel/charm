@@ -1,6 +1,11 @@
 # Changelog
 
-## [1.1.1] - 2025-10-21
+## [1.2.0] - 2025-10-21
+
+### ✨ Added
+- New `charm update` command for automatic self-updates
+- Automatically checks for latest version from GitHub releases
+- Downloads and installs the appropriate binary for the current OS/architecture
 
 ### 🐛 Fixed
 - Removed 20-line truncation limit on response body display

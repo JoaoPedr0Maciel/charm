@@ -79,6 +79,14 @@ charm delete https://api.example.com/users/1 --bearer seu-token
 charm version
 ```
 
+### Atualizar para Última Versão
+
+```bash
+charm update
+```
+
+O comando `update` verifica automaticamente se há uma versão mais recente disponível e atualiza o binário instalado.
+
 ## 🎨 Features
 
 - ✨ Output colorido e formatado
@@ -89,6 +97,7 @@ charm version
 - 🌈 JSON formatado e colorido
 - 🚀 Suporte completo para GET, POST, PUT, PATCH, DELETE
 - 📦 Envio de dados JSON no body
+- 🔄 Auto-update integrado com `charm update`
 
 ## 🛠️ Desenvolvimento
 

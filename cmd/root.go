@@ -6,6 +6,7 @@ import (
 
 	client "github.com/JoaoPedr0Maciel/charm/internal/http"
 	"github.com/JoaoPedr0Maciel/charm/internal/structs"
+	"github.com/JoaoPedr0Maciel/charm/internal/updater"
 	"github.com/spf13/cobra"
 )
 
@@ -90,12 +91,22 @@ var versionCmd = &cobra.Command{
 	},
 }
 
+var updateCmd = &cobra.Command{
+	Use:   "update",
+	Short: "Update Charm to the latest version",
+	Long:  `Check for updates and automatically download and install the latest version of Charm from GitHub releases`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return updater.Update(version)
+	},
+}
+
 func init() {
 	for _, method := range httpMethods {
 		rootCmd.AddCommand(createHTTPCommand(method))
 	}
 
 	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(updateCmd)
 }
 
 func Execute() {
